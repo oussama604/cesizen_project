@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="cesizen-mark-title">
+  <title id="cesizen-mark-title">Symbole CESIZen</title>
+  <g fill="none" stroke="#08c271" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="128" cy="38" r="18" stroke-width="10"/>
+    <path d="M128 62 L168 102 L128 142 L88 102 Z" stroke-width="10"/>
+    <path d="M40 196 C40 154 101 146 128 188 C155 146 216 154 216 196" stroke-width="10"/>
+    <path d="M40 196 C62 236 102 238 128 194 C154 238 194 236 216 196" stroke-width="10"/>
+  </g>
+</svg>

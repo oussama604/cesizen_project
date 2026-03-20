@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" role="img" aria-labelledby="cesizen-logo-title cesizen-logo-desc">
+  <title id="cesizen-logo-title">CESIZen</title>
+  <desc id="cesizen-logo-desc">Logo CESIZen avec icone de meditation verte, texte CESI ZEN et slogan en jaune.</desc>
+  <g fill="none" stroke="#08c271" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="124" cy="40" r="16" stroke-width="8"/>
+    <path d="M124 58 L156 92 L124 126 L92 92 Z" stroke-width="8"/>
+    <path d="M52 194 C52 160 104 154 124 190 C144 154 196 160 196 194" stroke-width="8"/>
+    <path d="M52 194 C70 238 104 240 124 198 C144 240 178 238 196 194" stroke-width="8"/>
+  </g>
+  <text x="254" y="100" fill="#08c271" font-family="Trebuchet MS, Arial, sans-serif" font-size="82" font-weight="700" letter-spacing="8">CESI</text>
+  <text x="254" y="172" fill="#ffd84d" font-family="Trebuchet MS, Arial, sans-serif" font-size="82" font-weight="700" letter-spacing="8">ZEN</text>
+  <text x="126" y="242" fill="#ffd84d" font-family="Trebuchet MS, Arial, sans-serif" font-size="38" font-weight="500" letter-spacing="4">L'APPLICATION DE VOTRE</text>
+  <text x="168" y="286" fill="#ffd84d" font-family="Trebuchet MS, Arial, sans-serif" font-size="38" font-weight="500" letter-spacing="6">SANTE MENTALE</text>
+</svg>
