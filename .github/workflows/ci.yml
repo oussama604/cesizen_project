@@ -34,6 +34,9 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Audit Composer dependencies
+        run: composer audit --no-interaction
+
       - name: Download frontend build
         uses: actions/download-artifact@v4
         with:
@@ -65,6 +68,9 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
+      - name: Audit production Node dependencies
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Build frontend assets
         run: npm run build
 
@@ -74,3 +80,32 @@ jobs:
           name: vite-build
           path: public/build
           if-no-files-found: error
+
+  docker-security:
+    name: Docker image security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: cesizen-project:ci
+          load: true
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: cesizen-project:ci
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH

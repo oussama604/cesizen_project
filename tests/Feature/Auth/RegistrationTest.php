@@ -23,6 +23,7 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'StrongPass@123',
             'password_confirmation' => 'StrongPass@123',
+            'gdpr' => '1',
         ]);
 
         $this->assertAuthenticated();
@@ -42,5 +43,21 @@ class RegistrationTest extends TestCase
         $response
             ->assertRedirect('/register')
             ->assertSessionHasErrors('password');
+    }
+
+    public function test_registration_requires_gdpr_consent(): void
+    {
+        $response = $this->from('/register')->post('/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'StrongPass@123',
+            'password_confirmation' => 'StrongPass@123',
+        ]);
+
+        $this->assertGuest();
+        $response
+            ->assertRedirect('/register')
+            ->assertSessionHasErrors('gdpr');
+        $this->assertDatabaseMissing('users', ['email' => 'test@example.com']);
     }
 }
