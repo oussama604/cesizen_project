@@ -16,6 +16,7 @@ concurrency:
 jobs:
   php:
     name: PHP tests
+    needs: frontend
     runs-on: ubuntu-latest
 
     steps:
@@ -32,6 +33,12 @@ jobs:
 
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: vite-build
+          path: public/build
 
       - name: Prepare application
         run: |
@@ -60,3 +67,10 @@ jobs:
 
       - name: Build frontend assets
         run: npm run build
+
+      - name: Upload frontend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: vite-build
+          path: public/build
+          if-no-files-found: error
