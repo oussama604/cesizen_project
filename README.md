@@ -21,6 +21,41 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Docker
+
+Prerequisites: Docker Desktop with Compose enabled.
+
+Copy `.env.example` to `.env`, generate the application key, then start the development environment:
+
+```powershell
+Copy-Item .env.example .env
+docker compose run --rm app php artisan key:generate
+docker compose up --build
+```
+
+The application is available at `http://localhost:8000` and Vite at `http://localhost:5173`.
+Migrations run automatically when the Laravel container starts. The MySQL data, Composer dependencies and Node dependencies are stored in named Docker volumes.
+
+To stop the services, run `docker compose down`. To remove the database as well, run `docker compose down -v`.
+
+## CI/CD
+
+GitHub Actions runs the PHP test suite and the Vite production build on every pull request and push to `main` or `master`.
+
+After a push to `main`, the CD workflow builds the Docker image and publishes it to GitHub Container Registry with these tags:
+
+- `ghcr.io/<owner>/<repository>:latest`
+- `ghcr.io/<owner>/<repository>:sha-<commit>`
+
+The image can be pulled on a deployment server with:
+
+```powershell
+docker login ghcr.io
+docker pull ghcr.io/<owner>/<repository>:latest
+```
+
+The deployment server still needs to run the image and provide production environment variables, including `APP_KEY` and database credentials. Direct deployment is not configured because this repository does not specify a hosting provider or deployment endpoint.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.

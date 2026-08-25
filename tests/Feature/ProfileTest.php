@@ -10,6 +10,22 @@ class ProfileTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_cannot_update_profile_information(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Original Name',
+        ]);
+
+        $response = $this->patch('/profile', [
+            'name' => 'Hacked Name',
+            'email' => 'hacked@example.com',
+        ]);
+
+        $response->assertRedirect('/login');
+
+        $this->assertSame('Original Name', $user->fresh()?->name);
+    }
+
     public function test_profile_page_is_displayed(): void
     {
         $user = User::factory()->create();
