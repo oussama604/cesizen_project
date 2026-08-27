@@ -50,6 +50,11 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Prepare application
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
       - name: Generate test coverage
         run: php artisan test --without-tty --coverage-clover=coverage/clover.xml
 
@@ -173,7 +178,7 @@ jobs:
       - name: Prepare ephemeral application environment
         run: |
           cp .env.example .env
-          php artisan key:generate
+          sed -i "s|^APP_KEY=.*|APP_KEY=base64:$(php -r 'echo base64_encode(random_bytes(32));')|" .env
 
       - name: Build and start ephemeral application
         run: |
