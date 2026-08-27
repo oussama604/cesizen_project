@@ -28,6 +28,43 @@ jobs:
       - name: Scan source code with Semgrep
         run: ~/.local/bin/semgrep scan --config p/laravel --error
 
+  code-quality:
+    name: SonarCloud code quality
+    needs: frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, intl, pdo_sqlite, sqlite3
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Generate test coverage
+        run: php artisan test --without-tty --coverage-clover=coverage/clover.xml
+
+      - name: Analyze code with SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Check SonarCloud Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1.2.1
+        with:
+          pollingTimeoutSec: 300
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   php:
     name: PHP tests
     needs: frontend
