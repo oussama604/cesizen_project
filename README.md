@@ -44,9 +44,9 @@ To stop the services, run `docker compose down`. To remove the database as well,
 
 GitHub Actions executes the following validation pipeline on every commit and pull request targeting `main` or `master`:
 
-`Commit / Pull Request -> dependency installation -> Vite build -> Laravel tests -> composer audit -> npm audit -> Docker image build -> Trivy scan -> validation`
+`Commit / Pull Request -> dependency installation -> Vite build -> Laravel tests -> SCA (composer audit, npm audit, Trivy) -> SAST (Semgrep) -> DAST (OWASP ZAP) -> validation`
 
-The Docker image build and its Trivy security scan are part of continuous integration.
+The Docker image build and its Trivy security scan are part of continuous integration. Semgrep scans the source code with Laravel security rules. OWASP ZAP performs a baseline scan against a temporary application instance started by the CI runner; it never scans the examination VM.
 
 ### Livraison continue
 
