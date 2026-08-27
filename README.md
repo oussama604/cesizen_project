@@ -50,7 +50,7 @@ The Docker image build and its Trivy security scan are part of continuous integr
 
 ### Livraison continue
 
-After a successful CI run on `main`, the continuous delivery workflow publishes the Docker image to GitHub Container Registry with these tags:
+After a successful CI run on `main`, the continuous delivery workflow publishes the Docker image to GitHub Container Registry with these tags, then deploys it automatically to the examination VM through a self-hosted GitHub Actions runner:
 
 - `ghcr.io/<owner>/<repository>:latest`
 - `ghcr.io/<owner>/<repository>:sha-<commit>`
@@ -62,7 +62,30 @@ docker login ghcr.io
 docker pull ghcr.io/<owner>/<repository>:latest
 ```
 
-The workflow stops after publishing the image to GHCR. It does not automatically deploy to a production server. The VM deployment procedure will be documented after the server is finalized; it will need to run the image and provide production environment variables, including `APP_KEY` and database credentials.
+### VM deployment
+
+The following preparation is only required once on the Ubuntu VM. Clone the repository into `/opt/cesizen`, then create the production environment file:
+
+```bash
+sudo git clone https://github.com/oussama604/cesizen_project.git /opt/cesizen
+cd /opt/cesizen
+sudo cp .env.production.example .env
+sudo nano .env
+sudo docker run --rm ghcr.io/oussama604/cesizen_project:latest php artisan key:generate --show
+```
+
+Set the displayed key as `APP_KEY` in `.env`, replace both `CHANGE_ME` values with strong database passwords, then start the published image and MySQL:
+
+```bash
+sudo docker compose -f docker-compose.prod.yml pull
+sudo docker compose -f docker-compose.prod.yml up -d
+```
+
+The application is then available at `http://192.168.0.14:8000`. The first startup runs Laravel migrations. For the examination demo data, run `sudo docker compose -f docker-compose.prod.yml exec app php artisan db:seed` once after startup.
+
+Register a GitHub Actions self-hosted runner on the VM from the repository's **Settings > Actions > Runners > New self-hosted runner** page. Select Linux x64 and run the commands GitHub displays on the VM. Configure the runner to start as a service, and ensure its user can run Docker commands.
+
+Once the runner is online, every successful CI run on `main` automatically pulls the published GHCR image and restarts the services with `docker compose -f docker-compose.prod.yml up -d --remove-orphans`.
 
 ## Learning Laravel
 

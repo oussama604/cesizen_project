@@ -61,3 +61,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to examination VM
+    needs: publish
+    runs-on: [self-hosted, linux, x64]
+
+    steps:
+      - name: Pull and start the published image
+        working-directory: /opt/cesizen
+        run: |
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans
+          docker compose -f docker-compose.prod.yml ps

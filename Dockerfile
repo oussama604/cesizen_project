@@ -1,3 +1,13 @@
+FROM node:22-alpine AS frontend
+
+WORKDIR /var/www/html
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
 FROM php:8.4-cli
 
 WORKDIR /var/www/html
@@ -24,6 +34,8 @@ COPY composer.json composer.lock ./
 RUN composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
 COPY . .
+
+COPY --from=frontend /var/www/html/public/build ./public/build
 
 RUN composer dump-autoload --optimize --no-interaction
 
