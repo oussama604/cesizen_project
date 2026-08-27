@@ -1,0 +1,79 @@
+name: Security Watch
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-watch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Weekly dependency and container audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          tools: composer:v2
+
+      - name: Audit Composer dependencies
+        id: composer_audit
+        continue-on-error: true
+        run: composer audit --no-interaction --locked
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Audit npm dependencies
+        id: npm_audit
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
+      - name: Scan repository and Dockerfile with Trivy
+        id: trivy_audit
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Publish audit summary
+        if: always()
+        run: |
+          {
+            echo '## Weekly security watch'
+            echo ''
+            echo '| Check | Result |'
+            echo '| --- | --- |'
+            echo "| Composer audit | ${{ steps.composer_audit.outcome }} |"
+            echo "| npm audit | ${{ steps.npm_audit.outcome }} |"
+            echo "| Trivy | ${{ steps.trivy_audit.outcome }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail when an audit finds vulnerabilities
+        if: always() && (steps.composer_audit.outcome == 'failure' || steps.npm_audit.outcome == 'failure' || steps.trivy_audit.outcome == 'failure')
+        run: |
+          echo 'One or more security audits found vulnerabilities.' >&2
+          exit 1

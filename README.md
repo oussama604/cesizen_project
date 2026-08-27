@@ -38,11 +38,19 @@ Migrations run automatically when the Laravel container starts. The MySQL data, 
 
 To stop the services, run `docker compose down`. To remove the database as well, run `docker compose down -v`.
 
-## CI/CD
+## CI et livraison continue
 
-GitHub Actions runs the PHP test suite and the Vite production build on every pull request and push to `main` or `master`.
+### CI - Integration continue
 
-After a push to `main`, the CD workflow builds the Docker image and publishes it to GitHub Container Registry with these tags:
+GitHub Actions executes the following validation pipeline on every commit and pull request targeting `main` or `master`:
+
+`Commit / Pull Request -> dependency installation -> Vite build -> Laravel tests -> composer audit -> npm audit -> Docker image build -> Trivy scan -> validation`
+
+The Docker image build and its Trivy security scan are part of continuous integration.
+
+### Livraison continue
+
+After a successful CI run on `main`, the continuous delivery workflow publishes the Docker image to GitHub Container Registry with these tags:
 
 - `ghcr.io/<owner>/<repository>:latest`
 - `ghcr.io/<owner>/<repository>:sha-<commit>`
@@ -54,7 +62,7 @@ docker login ghcr.io
 docker pull ghcr.io/<owner>/<repository>:latest
 ```
 
-The deployment server still needs to run the image and provide production environment variables, including `APP_KEY` and database credentials. Direct deployment is not configured because this repository does not specify a hosting provider or deployment endpoint.
+The workflow stops after publishing the image to GHCR. It does not automatically deploy to a production server. The VM deployment procedure will be documented after the server is finalized; it will need to run the image and provide production environment variables, including `APP_KEY` and database credentials.
 
 ## Learning Laravel
 
