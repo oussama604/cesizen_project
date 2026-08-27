@@ -85,7 +85,7 @@ The application is then available at `http://192.168.0.14:8000`. The first start
 
 Register a GitHub Actions self-hosted runner on the VM from the repository's **Settings > Actions > Runners > New self-hosted runner** page. Select Linux x64 and run the commands GitHub displays on the VM. Configure the runner to start as a service, and ensure its user can run Docker commands.
 
-Once the runner is online, every successful CI run on `main` automatically pulls the published GHCR image and restarts the services with `docker compose -f docker-compose.prod.yml up -d --remove-orphans`.
+Once the runner is online, every successful CI run on `main` automatically pulls the published GHCR image, restarts the services, and runs `php artisan db:seed --force`. This initializes roles, stress events, breathing exercises, and demo accounts while preserving existing accounts and their passwords.
 
 ## Learning Laravel
 

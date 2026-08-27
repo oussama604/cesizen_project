@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
         $adminRoleId = Role::query()->where('name', Role::ADMIN)->value('id');
         $userRoleId = Role::query()->where('name', Role::USER)->value('id');
 
-        User::query()->updateOrCreate([
+        User::query()->firstOrCreate([
             'email' => 'admin@cesizen.local',
         ], [
             'role_id' => $adminRoleId,
@@ -40,7 +40,7 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        User::query()->updateOrCreate([
+        User::query()->firstOrCreate([
             'email' => 'test@example.com',
         ], [
             'role_id' => $userRoleId,
