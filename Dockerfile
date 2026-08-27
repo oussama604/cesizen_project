@@ -3,6 +3,7 @@ FROM php:8.4-cli
 WORKDIR /var/www/html
 
 RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
         git \
         unzip \
