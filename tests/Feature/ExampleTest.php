@@ -14,6 +14,13 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertRedirect(route('information.index'));
+        $response
+            ->assertRedirect(route('information.index'))
+            ->assertHeader('Content-Security-Policy')
+            ->assertHeader('Permissions-Policy')
+            ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'DENY')
+            ->assertHeaderMissing('X-Powered-By');
     }
 }
