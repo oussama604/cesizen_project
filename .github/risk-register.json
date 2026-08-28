@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "last_updated": "2026-08-28",
+  "owner": "Project team",
+  "risks": [
+    {
+      "id": "R-001",
+      "name": "Critical dependency vulnerabilities",
+      "severity": "high",
+      "likelihood": "medium",
+      "impact": "high",
+      "asset": "Laravel and Node dependencies",
+      "owner": "Tech lead",
+      "status": "open",
+      "treatment": "Run weekly security audits, update packages, validate lock files, and confirm no critical vulnerabilities remain before release.",
+      "due_date": "2026-09-15"
+    },
+    {
+      "id": "R-002",
+      "name": "Container image vulnerabilities",
+      "severity": "medium",
+      "likelihood": "medium",
+      "impact": "high",
+      "asset": "Docker image and runtime environment",
+      "owner": "DevOps",
+      "status": "open",
+      "treatment": "Scan base images regularly, patch OS packages, and rebuild the image with the latest secure base layers.",
+      "due_date": "2026-09-30"
+    },
+    {
+      "id": "R-003",
+      "name": "Web application exposure to common OWASP attacks",
+      "severity": "high",
+      "likelihood": "medium",
+      "impact": "high",
+      "asset": "Public application endpoints",
+      "owner": "Security reviewer",
+      "status": "open",
+      "treatment": "Keep security tests in CI, review ZAP findings, harden headers, validate input handling, and monitor production logs.",
+      "due_date": "2026-09-20"
+    }
+  ]
+}

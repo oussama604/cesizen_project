@@ -1,0 +1,138 @@
+name: Risk Management
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  risk-analysis:
+    name: Risk analysis and treatment review
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate risk register
+        id: validate
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          path = ".github/risk-register.json"
+
+          try:
+              with open(path, "r", encoding="utf-8") as f:
+                  data = json.load(f)
+          except FileNotFoundError:
+              print(f"Risk register not found at {path}")
+              sys.exit(1)
+          except json.JSONDecodeError as exc:
+              print(f"Invalid JSON in {path}: {exc}")
+              sys.exit(1)
+
+          risks = data.get("risks", [])
+          if not isinstance(risks, list):
+              print("The 'risks' field must be a list.")
+              sys.exit(1)
+
+          open_risks = [risk for risk in risks if risk.get("status") == "open"]
+          critical_or_high = [
+              risk for risk in open_risks
+              if str(risk.get("severity", "low")).lower() in {"high", "critical"}
+          ]
+
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as fh:
+              fh.write("## Risk register summary\n\n")
+              fh.write(f"- Total risks: {len(risks)}\n")
+              fh.write(f"- Open risks: {len(open_risks)}\n")
+              fh.write(f"- Open high/critical risks: {len(critical_or_high)}\n\n")
+
+              if critical_or_high:
+                  fh.write("| Risk | Severity | Owner | Treatment |\n")
+                  fh.write("| --- | --- | --- | --- |\n")
+                  for risk in critical_or_high:
+                      fh.write(
+                          f"| {risk.get('name', 'Unnamed')} | {risk.get('severity', 'unknown')} | {risk.get('owner', 'Unassigned')} | {risk.get('treatment', 'Not defined')} |\n"
+                      )
+
+          if critical_or_high:
+              print(f"Open high/critical risks detected: {len(critical_or_high)}")
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+                  env.write("HAS_HIGH_RISK=true\n")
+          else:
+              print("No open high/critical risks detected.")
+              with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+                  env.write("HAS_HIGH_RISK=false\n")
+          PY
+
+      - name: Create treatment issues for high-risk items
+        if: env.HAS_HIGH_RISK == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('.github/risk-register.json', 'utf8'));
+            const risks = (data.risks || []).filter(
+              risk => risk.status === 'open' && ['high', 'critical'].includes(String(risk.severity || 'low').toLowerCase())
+            );
+
+            for (const risk of risks) {
+              const title = `Risk treatment: ${risk.name}`;
+              const existing = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'all',
+                per_page: 100,
+              });
+
+              const alreadyExists = existing.data.some(issue => issue.title === title);
+              if (alreadyExists) {
+                continue;
+              }
+
+              const body = [
+                '## Risk details',
+                '',
+                `- ID: ${risk.id}`,
+                `- Severity: ${risk.severity}`,
+                `- Likelihood: ${risk.likelihood}`,
+                `- Impact: ${risk.impact}`,
+                `- Asset: ${risk.asset}`,
+                `- Owner: ${risk.owner}`,
+                `- Status: ${risk.status}`,
+                `- Due date: ${risk.due_date || 'Not set'}`,
+                '',
+                '## Treatment plan',
+                '',
+                risk.treatment || 'Treatment not defined yet.',
+                '',
+                '## Validation',
+                '',
+                '- [ ] risk reduced or accepted',
+                '- [ ] action owner assigned',
+                '- [ ] evidence recorded'
+              ].join('\n');
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['security', 'risk', 'needs-treatment'],
+              });
+            }
+
+      - name: Fail when critical risks remain open
+        if: env.HAS_HIGH_RISK == 'true'
+        run: |
+          echo "High or critical risks remain open. Treatment actions must be tracked."
+          exit 1
