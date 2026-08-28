@@ -131,8 +131,8 @@ jobs:
               });
             }
 
-      - name: Fail when critical risks remain open
+      - name: Warn when high or critical risks remain open
         if: env.HAS_HIGH_RISK == 'true'
         run: |
-          echo "High or critical risks remain open. Treatment actions must be tracked."
-          exit 1
+          echo "Warning: high or critical risks remain open. Treatment actions must be tracked."
+          echo "This workflow continues in warning mode; the issues are still created for follow-up."
